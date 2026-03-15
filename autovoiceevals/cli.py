@@ -3,6 +3,7 @@
 Usage:
     python main.py research [--resume] [--config config.yaml]
     python main.py pipeline [--config config.yaml]
+    python main.py results [--config config.yaml]
     python -m autovoiceevals research
 """
 
@@ -53,12 +54,33 @@ def main() -> None:
         help="Path to config YAML (default: config.yaml)",
     )
 
+    # --- results subcommand ---
+    rsl = sub.add_parser(
+        "results",
+        help="View results from a completed run",
+        description="Show summary, score progression, and best prompt from a completed run.",
+    )
+    rsl.add_argument(
+        "--config", "-c", default="config.yaml",
+        help="Path to config YAML (default: config.yaml)",
+    )
+
     args = parser.parse_args()
 
     if not args.mode:
         parser.print_help()
         print("\nRun 'python main.py research' to start autoresearch.")
         sys.exit(0)
+
+    if args.mode == "results":
+        from .results import show_results
+        try:
+            cfg = load_config(args.config)
+        except (FileNotFoundError, ValueError) as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
+        show_results(cfg)
+        return
 
     try:
         cfg = load_config(args.config)

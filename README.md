@@ -201,6 +201,9 @@ python main.py research --resume
 
 # Single-pass audit (attack → improve → verify, then stop)
 python main.py pipeline
+
+# View results from a completed run
+python main.py results
 ```
 
 ## What happens when you run it
@@ -221,27 +224,48 @@ python main.py pipeline
 
 Your agent is always restored to its original state when the run ends. The best prompt is saved separately — you deploy it when you're ready.
 
-## Output
+### 6. View results
 
-Everything is saved to `results/`:
+After a run completes, review what happened:
+
+```bash
+python main.py results
+```
+
+This shows the eval suite, score progression, every experiment (kept/discarded), the changes that stuck with reasoning, the best prompt, and all failure modes discovered. Example output:
+
+```
+SCORE PROGRESSION
+    Baseline:   0.875  (CSAT=88, pass=80%)
+    Best:       0.925  (CSAT=88, pass=100%, exp 2)
+    Delta:      +0.050 (+5.7%)
+
+EXPERIMENTS
+    + exp  0  0.875  keep      baseline
+    - exp  1  0.712  discard   [add] Add confusion-detection instructions
+    + exp  2  0.925  keep      [add] Add impossible date/time handling
+    - exp  3  0.900  discard   [remove] Remove redundant personality guidance
+    + exp  4  0.925  keep      [modify] Simplify conversation flow
+    + exp  5  0.925  keep      [remove] Remove meta-commentary section
+
+CHANGES THAT STUCK
+    exp 2: +0.050 → 0.925
+      Add specific guidance to recognize impossible dates/times
+      why: The agent was ignoring 'February 30th' and accepting midnight bookings
+
+PROMPT
+    Original: 6615 chars
+    Best:     4719 chars
+    Delta:    -1896 chars
+```
+
+Raw data is also saved to `results/`:
 
 | File | What's in it |
 |---|---|
-| `results.tsv` | One row per experiment — score, CSAT, pass rate, keep/discard, description |
+| `results.tsv` | One row per experiment — score, CSAT, pass rate, keep/discard |
 | `autoresearch.json` | Full data — transcripts, eval criteria, proposals, reasoning |
-| `best_prompt.txt` | The highest-scoring prompt found during the run |
-
-Example `results.tsv`:
-
-```
-experiment  score     csat  pass_rate  prompt_len  status   description
-0           0.875     88.4  0.800      6615        keep     baseline
-1           0.712     81.4  0.800      6962        discard  Add confusion-detection instructions
-2           0.925     87.6  1.000      7047        keep     Add impossible date/time handling
-3           0.900     86.4  1.000      6670        discard  Remove redundant personality guidance
-4           0.925     88.4  1.000      4901        keep     Simplify conversation flow
-5           0.925     90.4  1.000      4719        keep     Remove meta-commentary section
-```
+| `best_prompt.txt` | The highest-scoring prompt, ready to deploy |
 
 ## Scoring
 
@@ -301,6 +325,7 @@ autovoiceevals/
     ├── smallest.py               Smallest AI client
     ├── llm.py                    Claude client
     ├── evaluator.py              Scenario generation, judging, prompt proposals
+    ├── results.py                Post-run results viewer
     ├── researcher.py             Autoresearch loop
     ├── pipeline.py               Attack → improve → verify pipeline
     └── graphs.py                 Visualization (pipeline mode)
