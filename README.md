@@ -2,7 +2,7 @@
 
 A self-improving loop for voice AI agents. Adapted from Karpathy's [autoresearch](https://github.com/karpathy/autoresearch) pattern.
 
-Give it a [Vapi](https://vapi.ai) assistant and two API keys. It generates adversarial callers, attacks the agent, proposes prompt improvements one at a time, keeps what works, reverts what doesn't. Run it overnight, wake up to a better agent.
+Give it a [Vapi](https://vapi.ai) or [Smallest AI](https://smallest.ai) agent and two API keys. It generates adversarial callers, attacks the agent, proposes prompt improvements one at a time, keeps what works, reverts what doesn't. Run it overnight, wake up to a better agent.
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -33,14 +33,16 @@ Set up API keys:
 
 ```bash
 cp .env.example .env
-# Add your ANTHROPIC_API_KEY and VAPI_API_KEY
+# Add ANTHROPIC_API_KEY + VAPI_API_KEY or SMALLEST_API_KEY
 ```
 
 Edit `config.yaml` — the only file you need to touch:
 
 ```yaml
+provider: vapi        # or "smallest" for Smallest AI
+
 assistant:
-  id: "your-vapi-assistant-id"
+  id: "your-agent-id"
   description: |
     What the agent does, its business context, hours, services, etc.
     This is used to generate relevant adversarial scenarios.
@@ -154,6 +156,7 @@ autovoiceevals/
     ├── scoring.py                Composite score formula (single source of truth)
     ├── display.py                Terminal formatting
     ├── vapi.py                   Vapi API client (conversations + assistant PATCH)
+    ├── smallest.py               Smallest AI client (prompt management + simulated conversations)
     ├── llm.py                    Claude API client (retries + JSON parsing)
     ├── evaluator.py              All LLM prompts: generate, judge, improve, propose
     ├── researcher.py             Autoresearch loop
@@ -161,11 +164,20 @@ autovoiceevals/
     └── graphs.py                 Visualization (pipeline mode)
 ```
 
+## Supported providers
+
+| Provider | Conversations | Prompt management |
+|---|---|---|
+| **[Vapi](https://vapi.ai)** | Live via Vapi Chat API | GET/PATCH assistant |
+| **[Smallest AI](https://smallest.ai)** | Simulated via Claude + system prompt | GET/PATCH workflow |
+
+Smallest AI agents only accept audio input via LiveKit (no text chat API), so conversations are simulated using Claude with the agent's actual system prompt from the platform. This tests the prompt itself — which is the artifact autoresearch optimizes.
+
 ## Requirements
 
 - Python 3.10+
 - [Anthropic API key](https://console.anthropic.com/) — Claude Sonnet 4
-- [Vapi API key](https://vapi.ai/) + a configured Vapi assistant
+- [Vapi API key](https://vapi.ai/) or [Smallest AI API key](https://smallest.ai/) + a configured agent
 - ~$0.90/experiment (~$18 for 20 experiments)
 
 ## License
