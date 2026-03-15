@@ -2,7 +2,10 @@
 # AutoVoiceEvals Configuration
 # ──────────────────────────────────────────────────────────────────
 
-# Your Vapi voice agent
+# Voice platform: "vapi" or "smallest"
+provider: vapi
+
+# Your voice agent
 assistant:
   id: "your-vapi-assistant-id"
   name: "Your Agent Name"              # optional, for display only
