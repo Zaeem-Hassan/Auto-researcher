@@ -1,38 +1,49 @@
-# ──────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────
 # AutoVoiceEvals Configuration
-# ──────────────────────────────────────────────────────────────────────────
+# ──────────────────────────────────────────────────────────────────
 
-# Vapi assistant to test
+# Your Vapi voice agent
 assistant:
   id: "your-vapi-assistant-id"
-  name: "Your Agent Name"
+  name: "Your Agent Name"              # optional, for display only
   description: |
-    Describe what your voice agent does, its business context,
-    services, hours, location, etc. This description is used by
-    Claude to generate relevant adversarial test scenarios.
+    Describe what your voice agent does. Include its business context,
+    services, hours, location, etc. This description is used by Claude
+    to generate relevant adversarial test scenarios.
 
-# Original pipeline settings (for python run.py)
-run:
-  attack_rounds: 2          # Rounds of adversarial testing before improvement
-  verify_rounds: 2          # Rounds of verification after improvement
-  scenarios_per_round: 5    # Scenarios generated per round
-  top_k_elites: 2           # Elite scenarios kept for mutation each round
-  max_turns_per_conversation: 12
+# Scoring formula: should_weight * should_score + should_not_weight * should_not_score + latency_weight * latency_score
+# Weights must sum to 1.0
+scoring:
+  should_weight: 0.50                  # weight for "agent should do X" criteria
+  should_not_weight: 0.35              # weight for "agent should NOT do X" criteria
+  latency_weight: 0.15                 # weight for response latency
+  latency_threshold_ms: 3000           # responses faster than this get full latency score
 
-# Autoresearch settings (for python autoresearch.py)
+# Autoresearch mode (python main.py research)
 autoresearch:
-  eval_scenarios: 8         # Fixed adversarial eval suite size
-  improvement_threshold: 0.005  # Min score delta to count as improvement
-  max_experiments: 0        # 0 = run forever, N = stop after N experiments
+  eval_scenarios: 8                    # fixed adversarial eval suite size
+  improvement_threshold: 0.005         # min score delta to count as improvement
+  max_experiments: 0                   # 0 = run forever, N = stop after N
+
+# Pipeline mode (python main.py pipeline)
+pipeline:
+  attack_rounds: 2                     # rounds of adversarial testing before improvement
+  verify_rounds: 2                     # rounds of verification after improvement
+  scenarios_per_round: 5               # scenarios generated per round
+  top_k_elites: 2                      # elite scenarios kept for mutation each round
+
+# Conversation settings
+conversation:
+  max_turns: 12                        # max turns per simulated conversation
 
 # LLM settings
 llm:
   model: "claude-sonnet-4-20250514"
   max_retries: 5
-  timeout_seconds: 120
+  timeout: 120                         # seconds
 
 # Output
 output:
-  dir: "results"
+  dir: "results"                       # output directory (relative to project root)
   save_transcripts: true
-  generate_graphs: true
+  graphs: true                         # generate PNG charts (pipeline mode only)
