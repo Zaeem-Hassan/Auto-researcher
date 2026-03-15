@@ -151,6 +151,16 @@ def show_results(cfg: Config) -> None:
         for fm in sorted(all_failures):
             print(f"    - {fm}")
 
+    # --- Generate graphs ---
+    from . import graphs
+    display.section("GRAPHS")
+    try:
+        paths = graphs.generate_research(experiments, out_dir)
+        for p in paths:
+            display.info(f"  {p}")
+    except Exception as e:
+        display.info(f"  Graph generation failed: {e}")
+
     display.blank()
     display.info(f"Full data: {log_path}")
     display.info(f"TSV log:   {tsv_path}")

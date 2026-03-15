@@ -102,7 +102,7 @@ class VapiClient:
                 conv.error = str(e)[:200]
                 break
 
-            time.sleep(0.3)
+            time.sleep(0.1)
 
         n = len(conv.agent_turns)
         conv.avg_latency_ms = total_latency / n if n else 0
