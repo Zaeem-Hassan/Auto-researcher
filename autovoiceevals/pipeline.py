@@ -15,7 +15,7 @@ from .config import Config
 from .models import Scenario
 from .scoring import composite_score
 from .evaluator import Evaluator
-from .vapi import VapiClient
+from .vapi import VapiClient  # noqa: F401 — used by provider factory
 from .llm import LLMClient
 from . import display, graphs
 
@@ -29,7 +29,7 @@ def _run_round(
     phase: str,
     scenarios: list[Scenario],
     cfg: Config,
-    vapi: VapiClient,
+    vapi,  # VapiClient or SmallestClient
     evaluator: Evaluator,
     all_experiments: list[dict],
     all_failures: set[str],
@@ -132,7 +132,6 @@ def run(cfg: Config) -> None:
     top_k = cfg.pipeline.top_k_elites
 
     # Build clients
-    vapi = VapiClient(cfg.vapi_api_key)
     llm = LLMClient(
         cfg.anthropic_api_key,
         model=cfg.llm.model,
@@ -140,6 +139,12 @@ def run(cfg: Config) -> None:
         max_retries=cfg.llm.max_retries,
     )
     evaluator = Evaluator(llm)
+
+    if cfg.provider == "smallest":
+        from .smallest import SmallestClient
+        vapi = SmallestClient(cfg.smallest_api_key, llm_client=llm)
+    else:
+        vapi = VapiClient(cfg.vapi_api_key)
 
     all_experiments: list[dict] = []
     all_failures: set[str] = set()
