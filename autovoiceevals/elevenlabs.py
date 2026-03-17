@@ -191,7 +191,7 @@ class ElevenLabsClient:
         for role, message, time_secs in raw_turns:
             normalized_role = "caller" if role in ("user", "human") else "assistant"
 
-            if normalized_role == "assistant" and prev_time is not None:
+            if normalized_role == "assistant":
                 # Latency = time between last user turn and this agent response
                 turn_latency = max((time_secs - prev_time) * 1000, 0.0)
             else:
