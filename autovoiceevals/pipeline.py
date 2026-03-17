@@ -53,6 +53,7 @@ def _run_round(
         conv = vapi.run_conversation(
             cfg.assistant.id, sid,
             sc.caller_script, cfg.conversation.max_turns,
+            scenario=sc,
         )
 
         try:
@@ -143,6 +144,9 @@ def run(cfg: Config) -> None:
     if cfg.provider == "smallest":
         from .smallest import SmallestClient
         vapi = SmallestClient(cfg.smallest_api_key, llm_client=llm)
+    elif cfg.provider == "elevenlabs":
+        from .elevenlabs import ElevenLabsClient
+        vapi = ElevenLabsClient(cfg.elevenlabs_api_key)
     else:
         vapi = VapiClient(cfg.vapi_api_key)
 
@@ -265,9 +269,9 @@ def run(cfg: Config) -> None:
     )
 
     if vapi.update_prompt(assistant_id, improved_prompt):
-        display.info("Vapi assistant updated.")
+        display.info("Agent prompt updated.")
     else:
-        display.info("WARNING: Vapi update failed!")
+        display.info("WARNING: Agent update failed!")
 
     # === PHASE C: VERIFY =============================================
 

@@ -24,6 +24,9 @@ def _build_provider(cfg: Config, llm_client: LLMClient | None = None):
     if cfg.provider == "smallest":
         from .smallest import SmallestClient
         return SmallestClient(cfg.smallest_api_key, llm_client=llm_client)
+    elif cfg.provider == "elevenlabs":
+        from .elevenlabs import ElevenLabsClient
+        return ElevenLabsClient(cfg.elevenlabs_api_key)
     else:
         from .vapi import VapiClient
         return VapiClient(cfg.vapi_api_key)
@@ -44,6 +47,7 @@ def _eval_scenario(
     conv = provider.run_conversation(
         assistant_id, scenario.id,
         scenario.caller_script, cfg.conversation.max_turns,
+        scenario=scenario,
     )
 
     try:
@@ -341,9 +345,9 @@ def run(cfg: Config, resume: bool = False) -> None:
                 ))
                 continue
 
-            # 2. Apply proposed prompt to Vapi
+            # 2. Apply proposed prompt to provider
             if not provider.update_prompt(assistant_id, new_prompt):
-                display.experiment_skip("Vapi update failed")
+                display.experiment_skip("provider update failed")
                 continue
 
             # 3. Run eval suite
@@ -426,7 +430,7 @@ def run(cfg: Config, resume: bool = False) -> None:
 
     # Restore original prompt
     display.blank()
-    display.info("Restoring original prompt on Vapi...")
+    display.info("Restoring original prompt on agent...")
     provider.update_prompt(assistant_id, original_prompt)
 
     # Save best prompt

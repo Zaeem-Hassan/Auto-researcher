@@ -110,6 +110,7 @@ class SmallestClient:
         scenario_id: str,
         caller_turns: list[str],
         max_turns: int = 12,
+        scenario=None,
     ) -> Conversation:
         """Run a simulated multi-turn conversation.
 

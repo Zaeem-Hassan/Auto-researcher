@@ -90,10 +90,11 @@ class Config:
     conversation: ConversationConfig
     llm: LLMConfig
     output: OutputConfig
-    provider: str = "vapi"         # "vapi" or "smallest"
+    provider: str = "vapi"         # "vapi", "smallest", or "elevenlabs"
     anthropic_api_key: str = ""
     vapi_api_key: str = ""
     smallest_api_key: str = ""
+    elevenlabs_api_key: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -116,13 +117,14 @@ def load_config(path: str | None = None) -> Config:
 
     # --- Provider ---
     provider = raw.get("provider", "vapi")
-    if provider not in ("vapi", "smallest"):
-        raise ValueError(f"Unknown provider: {provider}. Must be 'vapi' or 'smallest'.")
+    if provider not in ("vapi", "smallest", "elevenlabs"):
+        raise ValueError(f"Unknown provider: {provider}. Must be 'vapi', 'smallest', or 'elevenlabs'.")
 
     # --- API keys (from env only, never from YAML) ---
     anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
     vapi_key = os.environ.get("VAPI_API_KEY", "")
     smallest_key = os.environ.get("SMALLEST_API_KEY", "")
+    elevenlabs_key = os.environ.get("ELEVENLABS_API_KEY", "")
 
     if not anthropic_key:
         raise ValueError("ANTHROPIC_API_KEY not set in .env or environment")
@@ -130,6 +132,8 @@ def load_config(path: str | None = None) -> Config:
         raise ValueError("VAPI_API_KEY not set in .env or environment")
     if provider == "smallest" and not smallest_key:
         raise ValueError("SMALLEST_API_KEY not set in .env or environment")
+    if provider == "elevenlabs" and not elevenlabs_key:
+        raise ValueError("ELEVENLABS_API_KEY not set in .env or environment")
 
     # --- Assistant (required) ---
     ast = raw.get("assistant", {})
@@ -195,4 +199,5 @@ def load_config(path: str | None = None) -> Config:
         anthropic_api_key=anthropic_key,
         vapi_api_key=vapi_key,
         smallest_api_key=smallest_key,
+        elevenlabs_api_key=elevenlabs_key,
     )
