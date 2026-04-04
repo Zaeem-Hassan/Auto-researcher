@@ -1,4 +1,6 @@
-# AutoVoiceEvals
+# Auto-researcher
+
+01_score_progression.png
 
 AutoVoiceEvals is an iterative prompt optimization tool for voice agents.
 
