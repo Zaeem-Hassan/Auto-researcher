@@ -1,4 +1,4 @@
-"""LLM client for Claude API calls.
+"""LLM client for Groq API calls.
 
 Thin wrapper: handles retries, timeouts, and JSON extraction.
 No domain-specific prompts live here — see evaluator.py for those.
@@ -9,46 +9,42 @@ from __future__ import annotations
 import json
 import time
 
-import anthropic
-import httpx
+from groq import Groq
 
 
 class LLMClient:
-    """Claude API client with retry logic."""
+    """Groq API client with retry logic."""
 
     def __init__(
         self,
         api_key: str,
-        model: str = "claude-sonnet-4-20250514",
+        model: str = "llama-3.3-70b-versatile",
         timeout: int = 120,
         max_retries: int = 5,
     ):
         self.model = model
         self.max_retries = max_retries
-
-        http = httpx.Client(
-            timeout=httpx.Timeout(float(timeout), connect=30.0),
-            transport=httpx.HTTPTransport(retries=max_retries),
-        )
-        self._client = anthropic.Anthropic(
-            api_key=api_key,
-            max_retries=max_retries,
-            timeout=float(timeout),
-            http_client=http,
-        )
+        self._client = Groq(api_key=api_key, timeout=float(timeout))
 
     def call(self, system: str, user: str, max_tokens: int = 2048) -> str:
-        """Make a Claude API call with exponential backoff retries."""
+        """Make a Groq API call with exponential backoff retries."""
         for attempt in range(self.max_retries + 1):
             try:
-                r = self._client.messages.create(
+                r = self._client.chat.completions.create(
                     model=self.model,
                     max_tokens=max_tokens,
-                    system=system,
-                    messages=[{"role": "user", "content": user}],
+                    messages=[
+                        {"role": "system", "content": system},
+                        {"role": "user", "content": user},
+                    ],
                 )
-                return r.content[0].text
+                return r.choices[0].message.content
             except Exception as e:
+                if "decommissioned" in str(e).lower():
+                    raise ValueError(
+                        f"Groq model '{self.model}' is decommissioned. "
+                        "Set llm.model in config.yaml to a currently supported model."
+                    ) from e
                 if attempt < self.max_retries:
                     wait = min(2 ** attempt, 30)
                     print(
@@ -75,14 +71,19 @@ class LLMClient:
         """
         for attempt in range(self.max_retries + 1):
             try:
-                r = self._client.messages.create(
+                full_messages = [{"role": "system", "content": system}] + list(messages)
+                r = self._client.chat.completions.create(
                     model=self.model,
                     max_tokens=max_tokens,
-                    system=system,
-                    messages=messages,
+                    messages=full_messages,
                 )
-                return r.content[0].text
+                return r.choices[0].message.content
             except Exception as e:
+                if "decommissioned" in str(e).lower():
+                    raise ValueError(
+                        f"Groq model '{self.model}' is decommissioned. "
+                        "Set llm.model in config.yaml to a currently supported model."
+                    ) from e
                 if attempt < self.max_retries:
                     wait = min(2 ** attempt, 30)
                     time.sleep(wait)
@@ -91,7 +92,7 @@ class LLMClient:
         return ""
 
     def call_json(self, system: str, user: str, max_tokens: int = 2048):
-        """Call Claude and parse the response as JSON."""
+        """Call Groq and parse the response as JSON."""
         raw = self.call(system, user, max_tokens)
         return parse_json(raw)
 

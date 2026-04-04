@@ -144,7 +144,7 @@ def run(cfg: Config, resume: bool = False) -> None:
 
     # Build clients (LLM first — needed by SmallestClient for simulated conversations)
     llm = LLMClient(
-        cfg.anthropic_api_key,
+        cfg.groq_api_key,
         model=cfg.llm.model,
         timeout=cfg.llm.timeout,
         max_retries=cfg.llm.max_retries,

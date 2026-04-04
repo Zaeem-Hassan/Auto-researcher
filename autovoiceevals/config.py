@@ -71,7 +71,7 @@ class ConversationConfig:
 
 @dataclass
 class LLMConfig:
-    model: str = "claude-sonnet-4-20250514"
+    model: str = "llama-3.3-70b-versatile"
     max_retries: int = 5
     timeout: int = 120
 
@@ -97,7 +97,7 @@ class Config:
     llm: LLMConfig
     output: OutputConfig
     provider: str = "vapi"         # "vapi", "smallest", or "elevenlabs"
-    anthropic_api_key: str = ""
+    groq_api_key: str = ""
     vapi_api_key: str = ""
     smallest_api_key: str = ""
     elevenlabs_api_key: str = ""
@@ -127,13 +127,13 @@ def load_config(path: str | None = None) -> Config:
         raise ValueError(f"Unknown provider: {provider}. Must be 'vapi', 'smallest', or 'elevenlabs'.")
 
     # --- API keys (from env only, never from YAML) ---
-    anthropic_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    groq_key = os.environ.get("GROQ_API_KEY", "")
     vapi_key = os.environ.get("VAPI_API_KEY", "")
     smallest_key = os.environ.get("SMALLEST_API_KEY", "")
     elevenlabs_key = os.environ.get("ELEVENLABS_API_KEY", "")
 
-    if not anthropic_key:
-        raise ValueError("ANTHROPIC_API_KEY not set in .env or environment")
+    if not groq_key:
+        raise ValueError("GROQ_API_KEY not set in .env or environment")
     if provider == "vapi" and not vapi_key:
         raise ValueError("VAPI_API_KEY not set in .env or environment")
     if provider == "smallest" and not smallest_key:
@@ -194,7 +194,7 @@ def load_config(path: str | None = None) -> Config:
             simulate_timeout_secs=cv.get("simulate_timeout_secs", 300),
         ),
         llm=LLMConfig(
-            model=lm.get("model", "claude-sonnet-4-20250514"),
+            model=lm.get("model", "llama-3.3-70b-versatile"),
             max_retries=lm.get("max_retries", 5),
             timeout=lm.get("timeout", 120),
         ),
@@ -204,7 +204,7 @@ def load_config(path: str | None = None) -> Config:
             graphs=out.get("graphs", True),
         ),
         provider=provider,
-        anthropic_api_key=anthropic_key,
+        groq_api_key=groq_key,
         vapi_api_key=vapi_key,
         smallest_api_key=smallest_key,
         elevenlabs_api_key=elevenlabs_key,

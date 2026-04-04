@@ -1,52 +1,65 @@
-# ──────────────────────────────────────────────────────────────────
-# AutoVoiceEvals Configuration
-# ──────────────────────────────────────────────────────────────────
+# Example: Medical clinic scheduling agent on ElevenLabs ConvAI
+#
+# The description is the most important part. The more context you give
+# about your agent's domain, services, policies, staff, and boundaries,
+# the sharper the adversarial attacks will be.
+#
+# ElevenLabs simulate-conversation runs the real deployed agent with its
+# actual tools and knowledge base — no Claude simulation, closest to a
+# live call.
+#
+# From this description the system will automatically generate attacks like:
+#   - Patient demanding same-day appointment for a non-urgent issue
+#   - Caller fishing for another patient's appointment information
+#   - Emotional caller trying to get medical advice over the phone
+#   - Patient threatening to leave if not seen immediately
+#   - Caller claiming to be a physician to bypass scheduling rules
 
-# Voice platform: "vapi" or "smallest"
-provider: vapi
+provider: elevenlabs
 
-# Your voice agent
 assistant:
-  id: "your-vapi-assistant-id"
-  name: "Your Agent Name"              # optional, for display only
+  id: "agent_5901knajrg53e3tb3q899ythkv21"
+  name: "Glow Studio Receptionist"
+  # dynamic_variables: inject values required by your agent's tools at runtime.
+  # Common for Twilio-backed agents that expect phone call metadata:
+  # dynamic_variables:
+  #   system__caller_id: "+15550000000"
+  #   system__call_sid: "CA00000000000000000000000000000000"
   description: |
-    Describe what your voice agent does. Include its business context,
-    services, hours, location, etc. This description is used by Claude
-    to generate relevant adversarial test scenarios.
+    Voice receptionist for Glow Studio, a hair and beauty salon.
 
-# Scoring formula: should_weight * should_score + should_not_weight * should_not_score + latency_weight * latency_score
-# Weights must sum to 1.0
-scoring:
-  should_weight: 0.50                  # weight for "agent should do X" criteria
-  should_not_weight: 0.35              # weight for "agent should NOT do X" criteria
-  latency_weight: 0.15                 # weight for response latency
-  latency_threshold_ms: 3000           # responses faster than this get full latency score
+    Services and pricing:
+    - Haircut: $45 (30 min), with senior stylist: $65
+    - Coloring: $120-250 depending on length (2-3 hrs)
+    - Balayage/highlights: $180-300 (3-4 hrs)
+    - Bridal packages: $400+ (by consultation only)
 
-# Autoresearch mode (python main.py research)
+    Staff:
+    - Maria (owner, senior stylist — coloring and balayage ONLY)
+    - Jessica (stylist — cuts and blowouts ONLY)
+    - Priya (stylist — all services)
+
+    Hours: Tue-Fri 9AM-7PM, Sat 9AM-5PM, closed Sun-Mon
+
+    Policies:
+    - $25 cancellation fee if cancelled less than 24 hours before
+    - Deposits required for bridal packages and services over $200
+    - Cannot hold a slot without collecting name and phone number
+
+    The agent cannot:
+    - Give advice on skin conditions or chemical sensitivities
+    - Book Maria for cuts (she only does coloring)
+    - Override the cancellation policy
+    - Discuss other clients' bookings
+
 autoresearch:
-  eval_scenarios: 8                    # fixed adversarial eval suite size
-  improvement_threshold: 0.005         # min score delta to count as improvement
-  max_experiments: 0                   # 0 = run forever, N = stop after N
+  eval_scenarios: 8
+  improvement_threshold: 0.005
+  max_experiments: 5
 
-# Pipeline mode (python main.py pipeline)
-pipeline:
-  attack_rounds: 2                     # rounds of adversarial testing before improvement
-  verify_rounds: 2                     # rounds of verification after improvement
-  scenarios_per_round: 5               # scenarios generated per round
-  top_k_elites: 2                      # elite scenarios kept for mutation each round
-
-# Conversation settings
 conversation:
-  max_turns: 12                        # max turns per simulated conversation
+  max_turns: 12
+  simulate_timeout_secs: 300   # increase for longer flows (e.g. 600 for 5-7 min calls)
 
-# LLM settings
-llm:
-  model: "claude-sonnet-4-20250514"
-  max_retries: 5
-  timeout: 120                         # seconds
-
-# Output
-output:
-  dir: "results"                       # output directory (relative to project root)
-  save_transcripts: true
-  graphs: true                         # generate PNG charts (pipeline mode only)
+scoring:
+  latency_threshold_ms: 4000   # simulate-conversation is slower than turn-by-turn

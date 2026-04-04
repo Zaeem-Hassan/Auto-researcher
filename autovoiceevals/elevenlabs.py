@@ -53,6 +53,17 @@ class ElevenLabsClient:
             headers=self._headers,
             timeout=30,
         )
+        if resp.status_code == 401:
+            raise ValueError(
+                "ElevenLabs returned 401 Unauthorized while reading agent "
+                f"'{agent_id}'. Check ELEVENLABS_API_KEY and ensure this key "
+                "belongs to the same ElevenLabs workspace as the agent."
+            )
+        if resp.status_code == 404:
+            raise ValueError(
+                "ElevenLabs agent not found. Verify assistant.id in config.yaml "
+                f"(current: '{agent_id}')."
+            )
         resp.raise_for_status()
         return resp.json()
 

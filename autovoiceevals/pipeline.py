@@ -136,7 +136,7 @@ def run(cfg: Config) -> None:
 
     # Build clients
     llm = LLMClient(
-        cfg.anthropic_api_key,
+        cfg.groq_api_key,
         model=cfg.llm.model,
         timeout=cfg.llm.timeout,
         max_retries=cfg.llm.max_retries,
