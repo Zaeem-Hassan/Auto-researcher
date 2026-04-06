@@ -17,8 +17,6 @@ It runs a simple loop:
 4. Repeat
 
 Supported providers:
-- Vapi
-- Smallest AI
 - ElevenLabs ConvAI
 
 The LLM layer uses Groq for scenario generation, evaluation, and prompt improvement.
